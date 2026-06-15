@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eic-speech-nemo"
+version = "0.1.0"
+description = "NeMo-based speech pipeline: Wake Word -> VAD -> ASR"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+dependencies = [
+    "torch>=2.7",
+    "numpy",
+    "sounddevice",
+]
+
+[project.optional-dependencies]
+convert = ["nemo_toolkit[asr]", "sentencepiece"]
+convert-wakeword = ["openwakeword", "onnx2torch", "onnx", "onnxruntime"]
+dev = ["pytest", "ruff"]
+
+[project.scripts]
+eic-speech-nemo = "eic_speech_nemo.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
