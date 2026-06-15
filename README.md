@@ -13,6 +13,8 @@ Completely useless outside our settings.
 
 ## download weights
 
+**Put your weights under ```weights/``` directory.**
+
 - [nemotron_asr.pt](https://huggingface.co/chalkp/eic-speech-nemo/resolve/main/nemotron_asr.pt)
 - [silero_vad.pt](https://huggingface.co/chalkp/eic-speech-nemo/resolve/main/silero_vad.pt)
 - [wakeword_mel.pt](https://huggingface.co/chalkp/eic-speech-nemo/resolve/main/wakeword_mel.pt)
