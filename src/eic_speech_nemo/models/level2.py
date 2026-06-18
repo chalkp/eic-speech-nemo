@@ -79,7 +79,7 @@ class ConformerEncoder(nn.Module):
 
         # Pos embed
         T = x.size(1)
-        pos_emb = sinusoidal_pos_emb(T, self.d_model, x.device)
+        pos_emb = sinusoidal_pos_emb(T, self.d_model, x.device).to(x.dtype)
 
         # Conformer
         for layer in self.layers:

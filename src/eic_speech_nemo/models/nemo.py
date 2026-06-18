@@ -147,11 +147,15 @@ class NemotronASR(nn.Module):
             audio = audio.unsqueeze(0)
 
         device = next(self.parameters()).device
-        audio = audio.to(device)
+        # Preprocessor (STFT) always runs in FP32 — cuFFT doesn't support BF16
+        audio = audio.to(device=device, dtype=torch.float32)
         lengths = torch.tensor([audio.size(1)], device=device, dtype=torch.long)
 
-        # Mel spectrogram
+        # Mel spectrogram (FP32)
         features, feat_len = self.preprocessor(audio, lengths)
+
+        # Cast to encoder dtype (BF16 when using reduced precision)
+        features = features.to(self.encoder.pre_encode.out.weight.dtype)
 
         # Encoder
         encoded, enc_len = self.encoder(features, feat_len)
@@ -168,12 +172,17 @@ class NemotronASR(nn.Module):
         return [self.transcribe(a) for a in audios]
 
     @staticmethod
-    def load_from_pt(path: str, device: str = "cpu") -> "NemotronASR":
+    def load_from_pt(
+        path: str, device: str = "cpu", precision: str = "fp32",
+    ) -> "NemotronASR":
         """
         The .pt file contains:
             state_dict : OrderedDict of all model weights
             vocabulary : list of 1024 BPE token strings
             config : dict with architecture params
+
+        Args:
+            precision: "fp32", "bf16", or "fp8" (fp8 requires torchao + Hopper GPU).
         """
         checkpoint = torch.load(path, map_location=device, weights_only=False)
 
@@ -210,7 +219,22 @@ class NemotronASR(nn.Module):
             print(f"[ASR] Warning: {len(unexpected)} unexpected keys: {unexpected[:5]}")
 
         model.eval()
+
+        if precision in ("bf16", "fp8"):
+            model = model.to(torch.bfloat16)
+            # cuFFT doesn't support BF16, keep preprocessor in FP32 (wow, new knowledge af)
+            model.preprocessor = model.preprocessor.to(torch.float32)
+
         if device != "cpu":
             model = model.to(device)
+
+        if precision == "fp8":
+            try:
+                import torchao
+                torchao.quantize_(model, torchao.float8_weight_only())
+            except ImportError:
+                raise ImportError(
+                    "FP8 quantization requires torchao: pip install torchao"
+                )
 
         return model

@@ -25,6 +25,8 @@ def main():
                         help="Enable torch.compile for speedup (takes longer to initialize)")
     parser.add_argument("--weights", default="weights",
                         help="Directory containing model weight files (default: weights)")
+    parser.add_argument("--precision", default="fp32", choices=["fp32", "bf16", "fp8"],
+                        help="Model precision (default: fp32)")
     args = parser.parse_args()
 
     print("Loading models...")
@@ -33,7 +35,8 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"ASR device: {device}")
     asr_model = NemotronASR.load_from_pt(
-        os.path.join(args.weights, "nemotron_asr.pt"), device=device
+        os.path.join(args.weights, "nemotron_asr.pt"),
+        device=device, precision=args.precision,
     )
 
     if device == "cuda":

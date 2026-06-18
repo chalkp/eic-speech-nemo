@@ -37,6 +37,7 @@ class ASRConfig:
     min_utterance_sec: float = 0.8
 
     # Compute
+    precision: str = "fp32"  # "fp32" / "bf16" / "fp8"
     device: str = "auto"
     torch_compile: bool = True
 
@@ -159,7 +160,9 @@ class ASRServer:
         path = self._resolve_path(self.cfg.asr_model)
         try:
             from eic_speech_nemo.models.nemo import NemotronASR
-            self._asr = NemotronASR.load_from_pt(path, device=str(self._device))
+            self._asr = NemotronASR.load_from_pt(
+                path, device=str(self._device), precision=self.cfg.precision,
+            )
             self._asr.eval()
             if self.cfg.torch_compile:
                 self._compile_asr()

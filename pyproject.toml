@@ -16,6 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+quantize = ["torchao"]
 convert = ["nemo_toolkit[asr]", "sentencepiece"]
 convert-wakeword = ["openwakeword", "onnx2torch", "onnx", "onnxruntime"]
 dev = ["pytest", "ruff"]
