@@ -201,7 +201,7 @@ class NemotronASR(nn.Module):
                     break
             sd[new_k] = v
 
-        missing, unexpected = model.load_state_dict(sd, strict=False)
+        missing, unexpected = model.load_state_dict(sd, strict=False, assign=True)
         # Debug
         real_missing = [k for k in missing if "running_" not in k and "num_batches" not in k]
         if real_missing:
